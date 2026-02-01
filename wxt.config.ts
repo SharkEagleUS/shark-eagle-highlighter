@@ -14,5 +14,8 @@ export default defineConfig({
     action: {
       default_title: 'Open Highlighter Panel'
     }
+  },
+  webExt: {
+    startUrls: ['https://hzhou.me/2020/12/24/SaltyNote-Server-Setup/']
   }
 });
