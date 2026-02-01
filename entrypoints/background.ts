@@ -6,12 +6,6 @@ export default defineBackground(() => {
       title: 'Save & Highlight Text',
       contexts: ['selection']
     });
-
-    chrome.contextMenus.create({
-      id: 'remove-highlight',
-      title: 'Remove Highlight',
-      contexts: ['selection']
-    });
   });
 
   // Handle context menu clicks
@@ -21,8 +15,6 @@ export default defineBackground(() => {
     if (info.menuItemId === 'save-highlight') {
       // Send message to content script to save the selection
       chrome.tabs.sendMessage(tab.id, { action: 'saveHighlight' });
-    } else if (info.menuItemId === 'remove-highlight') {
-      chrome.tabs.sendMessage(tab.id, { action: 'removeHighlight' });
     }
   });
 

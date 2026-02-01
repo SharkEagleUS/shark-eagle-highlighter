@@ -22,8 +22,6 @@ export default defineContentScript({
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (message.action === 'saveHighlight') {
         handleSaveHighlight();
-      } else if (message.action === 'removeHighlight') {
-        handleRemoveHighlight();
       } else if (message.action === 'refreshHighlights') {
         clearAllHighlights();
         loadAndApplyHighlights();
@@ -196,29 +194,6 @@ async function handleSaveHighlight(): Promise<void> {
       }
     }
   );
-}
-
-function handleRemoveHighlight(): void {
-  const selection = window.getSelection();
-  if (!selection || selection.isCollapsed) return;
-
-  // Find if selection is within a highlight
-  const range = selection.getRangeAt(0);
-  let node: Node | null = range.commonAncestorContainer;
-  
-  while (node && node !== document.body) {
-    if (node.nodeType === Node.ELEMENT_NODE) {
-      const el = node as HTMLElement;
-      if (el.classList.contains(HIGHLIGHT_CLASS)) {
-        const highlightId = el.dataset.highlightId;
-        if (highlightId) {
-          removeHighlightById(highlightId);
-          return;
-        }
-      }
-    }
-    node = node.parentNode;
-  }
 }
 
 async function removeHighlightById(highlightId: string): Promise<void> {

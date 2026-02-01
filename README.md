@@ -48,9 +48,8 @@ npm run zip
 
 1. **Save a highlight**: Select text → Right-click → "Save & Highlight Text"
 2. **View highlights**: Click the extension icon to open the side panel
-3. **Remove a highlight**: 
+3. **Remove a highlight**:
    - Alt+Click on the highlighted text, OR
-   - Right-click on the highlight → "Remove Highlight", OR
    - Click "Delete" in the side panel
 4. **Revisit a page**: Highlights are automatically restored
 
