@@ -8,8 +8,15 @@ export default defineContentScript({
     // Inject highlight styles
     injectHighlightStyles();
 
-    // Load and apply existing highlights
-    loadAndApplyHighlights();
+    // Ensure DOM is fully ready before applying highlights
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        loadAndApplyHighlights();
+      });
+    } else {
+      // DOM is already ready
+      loadAndApplyHighlights();
+    }
 
     // Listen for messages from background
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -18,6 +25,7 @@ export default defineContentScript({
       } else if (message.action === 'removeHighlight') {
         handleRemoveHighlight();
       } else if (message.action === 'refreshHighlights') {
+        clearAllHighlights();
         loadAndApplyHighlights();
       }
     });
@@ -72,7 +80,7 @@ interface HighlightPosition {
 
 async function loadAndApplyHighlights(): Promise<void> {
   const url = window.location.href;
-  
+
   const highlights = await new Promise<HighlightPosition[]>((resolve) => {
     chrome.runtime.sendMessage(
       { action: 'getHighlights', url },
@@ -80,9 +88,27 @@ async function loadAndApplyHighlights(): Promise<void> {
     );
   });
 
+  console.log(`Loading ${highlights.length} highlights for ${url}`);
+
+  // Apply each highlight
   for (const highlight of highlights) {
-    applyHighlight(highlight);
+    const success = applyHighlight(highlight);
+    if (!success) {
+      console.warn('Failed to apply highlight:', highlight.id, highlight.text.substring(0, 50));
+    }
   }
+}
+
+function clearAllHighlights(): void {
+  const marks = document.querySelectorAll(`.${HIGHLIGHT_CLASS}`);
+  marks.forEach(mark => {
+    const parent = mark.parentNode;
+    while (mark.firstChild) {
+      parent?.insertBefore(mark.firstChild, mark);
+    }
+    mark.remove();
+    parent?.normalize();
+  });
 }
 
 async function handleSaveHighlight(): Promise<void> {
@@ -273,8 +299,19 @@ function createHighlightFromSelection(selection: Selection): HighlightPosition |
 
 // Apply highlight from stored position
 function applyHighlight(position: HighlightPosition): boolean {
+  // Check if highlight already exists
+  const existing = document.querySelector(`[data-highlight-id="${position.id}"]`);
+  if (existing) {
+    console.log('Highlight already exists:', position.id);
+    return true;
+  }
+
   const container = getElementByXPath(position.xpath);
-  if (!container) return false;
+  if (!container) {
+    console.warn('Container not found for xpath:', position.xpath, '- trying document-wide search');
+    // Fallback: try to find text in entire document
+    return applyHighlightByContext(document.body, position);
+  }
 
   // Use TreeWalker to find all text nodes
   const walker = document.createTreeWalker(
@@ -337,15 +374,18 @@ function applyHighlightByContext(container: Element, position: HighlightPosition
 
   let textStart: number;
   if (contextIndex >= 0) {
+    console.log('Found highlight using full context');
     textStart = contextIndex + position.beforeContext.length;
   } else {
     // Try without full context, match with partial context
     const partialPattern = position.beforeContext.slice(-20) + position.text + position.afterContext.slice(0, 20);
     const partialIndex = containerText.indexOf(partialPattern);
     if (partialIndex >= 0) {
+      console.log('Found highlight using partial context');
       textStart = partialIndex + position.beforeContext.slice(-20).length;
     } else {
       // Last resort: just find the text at the approximate position
+      console.log('Trying text-only search for:', position.text.substring(0, 30) + '...');
       const allMatches: number[] = [];
       let searchStart = 0;
       let foundIndex: number;
@@ -354,8 +394,12 @@ function applyHighlightByContext(container: Element, position: HighlightPosition
         searchStart = foundIndex + 1;
       }
 
-      if (allMatches.length === 0) return false;
+      if (allMatches.length === 0) {
+        console.warn('Text not found in container:', position.text.substring(0, 50));
+        return false;
+      }
 
+      console.log(`Found ${allMatches.length} matches, selecting closest to offset ${position.startOffset}`);
       // Find closest match to original offset
       textStart = allMatches.reduce((prev, curr) =>
         Math.abs(curr - position.startOffset) < Math.abs(prev - position.startOffset) ? curr : prev
