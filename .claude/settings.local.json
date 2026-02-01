@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(pnpm build:*)",
-      "Bash(pnpm dev)"
+      "Bash(pnpm dev)",
+      "Bash(claude mcp:*)"
     ]
   }
 }
