@@ -322,7 +322,7 @@ function createHighlightFromSelection(selection: Selection): HighlightPosition |
   const startOffset = preRange.toString().length;
 
   return {
-    id: `hl_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    id: crypto.randomUUID(),
     text,
     xpath,
     startOffset,

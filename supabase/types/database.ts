@@ -29,7 +29,7 @@ export interface Database {
           updated_at: string
         }
         Insert: {
-          id?: string
+          id: string
           user_id: string
           url: string
           text: string
