@@ -4,12 +4,15 @@
       "Bash(pnpm build:*)",
       "Bash(pnpm dev)",
       "Bash(claude mcp:*)",
-      "Bash(git add:*)",
-      "Bash(git commit:*)",
       "Bash(npm run build:*)",
       "Bash(rg:*)",
       "Bash(pnpm test:*)",
       "Bash(pnpm test:coverage:*)"
+    ],
+    "deny": [
+      "Bash(git add:*)",
+      "Bash(git rm:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
