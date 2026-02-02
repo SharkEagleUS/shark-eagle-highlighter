@@ -1,23 +1,4 @@
-type HighlightColor = 'yellow' | 'red' | 'green' | 'lightBlue' | 'lightPurple';
-
-interface HighlightPosition {
-  text: string;
-  xpath: string;
-  startOffset: number;
-  endOffset: number;
-  beforeContext: string;
-  afterContext: string;
-  id: string;
-  createdAt: number;
-  comment?: string;
-  tags?: string[];
-  color?: HighlightColor;
-}
-
-interface PageHighlights {
-  url: string;
-  highlights: HighlightPosition[];
-}
+import type { HighlightColor, HighlightPosition, PageHighlights } from '@/utils/types';
 
 // Tab switching
 const tabs = document.querySelectorAll('.tab');

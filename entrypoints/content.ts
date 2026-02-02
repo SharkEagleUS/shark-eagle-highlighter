@@ -1,4 +1,6 @@
 import { showHighlightModal, removeModal } from '@/utils/modal';
+import { getXPath, getElementByXPath } from '@/utils/xpath';
+import type { HighlightColor, HighlightPosition } from '@/utils/types';
 
 export default defineContentScript({
   matches: ['<all_urls>'],
@@ -47,13 +49,38 @@ export default defineContentScript({
   }
 });
 
+// Constants
 const HIGHLIGHT_CLASS = 'text-highlighter-extension-mark';
+const CONTEXT_LENGTH = 50; // Characters of context to store before/after highlight
+
+// Color definitions for highlight styles
+const HIGHLIGHT_COLORS: Record<HighlightColor, { base: string; hover: string }> = {
+  yellow: { base: '#ffeb3b', hover: '#ffc107' },
+  red: { base: '#ff8a80', hover: '#ff5252' },
+  green: { base: '#b9f6ca', hover: '#69f0ae' },
+  lightBlue: { base: '#80d8ff', hover: '#40c4ff' },
+  lightPurple: { base: '#ea80fc', hover: '#e040fb' },
+};
 
 function injectHighlightStyles(): void {
   if (document.getElementById('text-highlighter-styles')) return;
 
   const style = document.createElement('style');
   style.id = 'text-highlighter-styles';
+
+  // Generate CSS dynamically from color definitions
+  const colorStyles = Object.entries(HIGHLIGHT_COLORS)
+    .map(
+      ([color, { base, hover }]) => `
+    .${HIGHLIGHT_CLASS}.color-${color} {
+      background-color: ${base} !important;
+    }
+    .${HIGHLIGHT_CLASS}.color-${color}:hover {
+      background-color: ${hover} !important;
+    }`
+    )
+    .join('\n');
+
   style.textContent = `
     .${HIGHLIGHT_CLASS} {
       border-radius: 2px;
@@ -61,59 +88,9 @@ function injectHighlightStyles(): void {
       cursor: pointer;
       transition: background-color 0.2s;
     }
-
-    .${HIGHLIGHT_CLASS}.color-yellow {
-      background-color: #ffeb3b !important;
-    }
-    .${HIGHLIGHT_CLASS}.color-yellow:hover {
-      background-color: #ffc107 !important;
-    }
-
-    .${HIGHLIGHT_CLASS}.color-red {
-      background-color: #ff8a80 !important;
-    }
-    .${HIGHLIGHT_CLASS}.color-red:hover {
-      background-color: #ff5252 !important;
-    }
-
-    .${HIGHLIGHT_CLASS}.color-green {
-      background-color: #b9f6ca !important;
-    }
-    .${HIGHLIGHT_CLASS}.color-green:hover {
-      background-color: #69f0ae !important;
-    }
-
-    .${HIGHLIGHT_CLASS}.color-lightBlue {
-      background-color: #80d8ff !important;
-    }
-    .${HIGHLIGHT_CLASS}.color-lightBlue:hover {
-      background-color: #40c4ff !important;
-    }
-
-    .${HIGHLIGHT_CLASS}.color-lightPurple {
-      background-color: #ea80fc !important;
-    }
-    .${HIGHLIGHT_CLASS}.color-lightPurple:hover {
-      background-color: #e040fb !important;
-    }
+    ${colorStyles}
   `;
   document.head.appendChild(style);
-}
-
-type HighlightColor = 'yellow' | 'red' | 'green' | 'lightBlue' | 'lightPurple';
-
-interface HighlightPosition {
-  text: string;
-  xpath: string;
-  startOffset: number;
-  endOffset: number;
-  beforeContext: string;
-  afterContext: string;
-  id: string;
-  createdAt: number;
-  comment?: string;
-  tags?: string[];
-  color?: HighlightColor;
 }
 
 async function loadAndApplyHighlights(): Promise<void> {
@@ -246,61 +223,6 @@ async function removeHighlightById(highlightId: string): Promise<void> {
   });
 }
 
-// Get XPath for an element
-function getXPath(element: Node): string {
-  if (element.nodeType === Node.TEXT_NODE) {
-    element = element.parentNode!;
-  }
-
-  if (element.nodeType !== Node.ELEMENT_NODE) {
-    return '';
-  }
-
-  const el = element as Element;
-
-  if (el.id) {
-    return `//*[@id="${el.id}"]`;
-  }
-
-  const parts: string[] = [];
-  let current: Element | null = el;
-
-  while (current && current.nodeType === Node.ELEMENT_NODE) {
-    let index = 1;
-    let sibling = current.previousSibling;
-
-    while (sibling) {
-      if (sibling.nodeType === Node.ELEMENT_NODE &&
-        (sibling as Element).tagName === current.tagName) {
-        index++;
-      }
-      sibling = sibling.previousSibling;
-    }
-
-    const tagName = current.tagName.toLowerCase();
-    parts.unshift(`${tagName}[${index}]`);
-    current = current.parentElement;
-  }
-
-  return '/' + parts.join('/');
-}
-
-// Get element by XPath
-function getElementByXPath(xpath: string): Element | null {
-  try {
-    const result = document.evaluate(
-      xpath,
-      document,
-      null,
-      XPathResult.FIRST_ORDERED_NODE_TYPE,
-      null
-    );
-    return result.singleNodeValue as Element;
-  } catch {
-    return null;
-  }
-}
-
 // Create highlight position data from selection
 function createHighlightFromSelection(selection: Selection): HighlightPosition | null {
   if (!selection.rangeCount || selection.isCollapsed) return null;
@@ -316,8 +238,8 @@ function createHighlightFromSelection(selection: Selection): HighlightPosition |
   // Get surrounding context for verification
   const containerText = container.textContent || '';
   const textStart = containerText.indexOf(text);
-  const beforeContext = containerText.substring(Math.max(0, textStart - 50), textStart);
-  const afterContext = containerText.substring(textStart + text.length, textStart + text.length + 50);
+  const beforeContext = containerText.substring(Math.max(0, textStart - CONTEXT_LENGTH), textStart);
+  const afterContext = containerText.substring(textStart + text.length, textStart + text.length + CONTEXT_LENGTH);
 
   // Calculate offset within the container
   const preRange = document.createRange();

@@ -1,5 +1,5 @@
 // Modal component for adding comments and tags to highlights
-import type { HighlightColor } from './storage';
+import type { HighlightColor } from './types';
 
 const MODAL_ID = 'text-highlighter-modal';
 const MODAL_OVERLAY_ID = 'text-highlighter-modal-overlay';

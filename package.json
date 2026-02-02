@@ -5,11 +5,21 @@
   "scripts": {
     "dev": "wxt",
     "build": "wxt build",
-    "zip": "wxt zip"
+    "zip": "wxt zip",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.93.3",
     "typescript": "^5.9.3",
     "wxt": "^0.20.13"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.268",
+    "@vitest/ui": "^1.2.0",
+    "@vitest/coverage-v8": "^1.2.0",
+    "jsdom": "^24.0.0",
+    "vitest": "^1.2.0"
   }
 }

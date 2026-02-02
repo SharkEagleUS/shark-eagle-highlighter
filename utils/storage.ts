@@ -1,91 +1,16 @@
-// Types for highlight storage
-export type HighlightColor = 'yellow' | 'red' | 'green' | 'lightBlue' | 'lightPurple';
+import type { HighlightPosition, PageHighlights } from './types';
+import { getXPath, getElementByXPath } from './xpath';
 
-export interface HighlightPosition {
-  text: string;
-  // XPath to the container element
-  xpath: string;
-  // Text offset within the container
-  startOffset: number;
-  endOffset: number;
-  // Surrounding context for verification
-  beforeContext: string;
-  afterContext: string;
-  // Unique ID for this highlight
-  id: string;
-  // Timestamp
-  createdAt: number;
-  // Optional comment
-  comment?: string;
-  // Optional tags
-  tags?: string[];
-  // Highlight color (default: yellow)
-  color?: HighlightColor;
-}
+// Re-export types for backward compatibility
+export type { HighlightColor } from './types';
+export type { HighlightPosition, PageHighlights } from './types';
 
-export interface PageHighlights {
-  url: string;
-  highlights: HighlightPosition[];
-}
+// Re-export XPath utilities for backward compatibility
+export { getXPath, getElementByXPath } from './xpath';
 
 // Generate a unique ID
 export function generateId(): string {
   return `hl_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-}
-
-// Get XPath for an element
-export function getXPath(element: Node): string {
-  if (element.nodeType === Node.TEXT_NODE) {
-    element = element.parentNode!;
-  }
-  
-  if (element.nodeType !== Node.ELEMENT_NODE) {
-    return '';
-  }
-
-  const el = element as Element;
-  
-  if (el.id) {
-    return `//*[@id="${el.id}"]`;
-  }
-
-  const parts: string[] = [];
-  let current: Element | null = el;
-
-  while (current && current.nodeType === Node.ELEMENT_NODE) {
-    let index = 1;
-    let sibling = current.previousSibling;
-    
-    while (sibling) {
-      if (sibling.nodeType === Node.ELEMENT_NODE && 
-          (sibling as Element).tagName === current.tagName) {
-        index++;
-      }
-      sibling = sibling.previousSibling;
-    }
-
-    const tagName = current.tagName.toLowerCase();
-    parts.unshift(`${tagName}[${index}]`);
-    current = current.parentElement;
-  }
-
-  return '/' + parts.join('/');
-}
-
-// Get element by XPath
-export function getElementByXPath(xpath: string): Element | null {
-  try {
-    const result = document.evaluate(
-      xpath,
-      document,
-      null,
-      XPathResult.FIRST_ORDERED_NODE_TYPE,
-      null
-    );
-    return result.singleNodeValue as Element;
-  } catch {
-    return null;
-  }
 }
 
 // Normalize URL for storage key
