@@ -100,6 +100,49 @@ export interface Database {
           }
         ]
       }
+      shared_highlights: {
+        Row: {
+          id: string
+          highlight_id: string
+          owner_id: string
+          shared_with_email: string
+          share_token: string
+          expires_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          highlight_id: string
+          owner_id: string
+          shared_with_email: string
+          share_token: string
+          expires_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          highlight_id?: string
+          owner_id?: string
+          shared_with_email?: string
+          share_token?: string
+          expires_at?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shared_highlights_highlight_id_fkey"
+            columns: ["highlight_id"]
+            referencedRelation: "highlights"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shared_highlights_owner_id_fkey"
+            columns: ["owner_id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never
