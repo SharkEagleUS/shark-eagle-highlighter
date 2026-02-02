@@ -8,11 +8,23 @@ export default defineConfig({
     description: 'Save and highlight text selections across page visits',
     version: '1.0.0',
     permissions: ['storage', 'contextMenus', 'sidePanel'],
+    icons: {
+      16: 'icon/16.png',
+      32: 'icon/32.png',
+      48: 'icon/48.png',
+      128: 'icon/128.png',
+    },
     side_panel: {
       default_path: 'sidepanel.html'
     },
     action: {
-      default_title: 'Open Highlighter Panel'
+      default_title: 'Open Highlighter Panel',
+      default_icon: {
+        16: 'icon/16.png',
+        32: 'icon/32.png',
+        48: 'icon/48.png',
+        128: 'icon/128.png',
+      },
     }
   },
   webExt: {
