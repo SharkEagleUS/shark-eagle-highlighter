@@ -296,7 +296,12 @@ export class AuthUI {
     if (lastSyncEl) {
       if (syncStatus.lastSyncAt) {
         const date = new Date(syncStatus.lastSyncAt);
-        lastSyncEl.textContent = date.toLocaleString();
+        // Check if date is valid
+        if (!isNaN(date.getTime())) {
+          lastSyncEl.textContent = date.toLocaleString();
+        } else {
+          lastSyncEl.textContent = 'Never';
+        }
       } else {
         lastSyncEl.textContent = 'Never';
       }

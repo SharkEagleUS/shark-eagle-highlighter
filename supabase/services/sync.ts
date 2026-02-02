@@ -23,7 +23,7 @@ export interface LocalHighlight {
 
 export interface SyncStatus {
   isSyncing: boolean;
-  lastSyncAt: Date | null;
+  lastSyncAt: string | null;
   error: string | null;
 }
 
@@ -311,15 +311,15 @@ export class SyncService {
 
       // Update sync metadata
       const supabase = getSupabaseClient();
+      const now = new Date().toISOString();
       await supabase
         .from('sync_metadata')
         .upsert({
           user_id: user.id,
           device_id: this.deviceId,
-          last_sync_at: new Date().toISOString(),
+          last_sync_at: now,
         }, { onConflict: 'user_id,device_id' });
 
-      const now = new Date();
       this.notifySyncStatus({ isSyncing: false, lastSyncAt: now, error: null });
 
       return { success: true, error: null };
