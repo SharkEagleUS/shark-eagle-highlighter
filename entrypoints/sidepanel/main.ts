@@ -122,13 +122,25 @@ function createHighlightElement(highlight: HighlightPosition, url?: string): HTM
   dateSpan.className = 'highlight-date';
   dateSpan.textContent = formatDate(highlight.createdAt);
 
+  const actionsDiv = document.createElement('div');
+  actionsDiv.className = 'highlight-actions';
+
+  const shareBtn = document.createElement('button');
+  shareBtn.className = 'btn-share';
+  shareBtn.textContent = '📧 Share';
+  shareBtn.title = 'Share this highlight';
+  shareBtn.addEventListener('click', () => shareHighlight(highlight));
+
   const deleteBtn = document.createElement('button');
   deleteBtn.className = 'btn-delete';
   deleteBtn.textContent = 'Delete';
   deleteBtn.addEventListener('click', () => deleteHighlight(highlight.id, url));
 
+  actionsDiv.appendChild(shareBtn);
+  actionsDiv.appendChild(deleteBtn);
+
   metaDiv.appendChild(dateSpan);
-  metaDiv.appendChild(deleteBtn);
+  metaDiv.appendChild(actionsDiv);
 
   item.appendChild(metaDiv);
 
@@ -276,6 +288,76 @@ async function deleteHighlight(highlightId: string, url?: string): Promise<void>
   } else {
     loadAllHighlights();
   }
+}
+
+// Share highlight
+async function shareHighlight(highlight: HighlightPosition): Promise<void> {
+  // Dynamic import to avoid bundling issues
+  const { showShareModal } = await import('../../utils/share-modal');
+  const { sharingService } = await import('../../supabase/services/sharing');
+  const { authService } = await import('../../supabase/services/auth');
+
+  // Check if user is authenticated
+  const isAuth = await authService.isAuthenticated();
+  if (!isAuth) {
+    alert('Please sign in to share highlights');
+    // Switch to account tab
+    const accountTab = document.querySelector('[data-tab="account"]') as HTMLElement;
+    if (accountTab) {
+      accountTab.click();
+    }
+    return;
+  }
+
+  showShareModal(
+    highlight.text,
+    async (result) => {
+      // Show loading state
+      const shareButtons = document.querySelectorAll('.btn-share');
+      shareButtons.forEach(btn => {
+        (btn as HTMLButtonElement).disabled = true;
+        (btn as HTMLButtonElement).textContent = '⏳ Sharing...';
+      });
+
+      // Share the highlight
+      const shareResult = await sharingService.shareHighlight(
+        highlight.id,
+        result.email,
+        { expiresInDays: result.expiresInDays || undefined }
+      );
+
+      // Reset buttons
+      shareButtons.forEach(btn => {
+        (btn as HTMLButtonElement).disabled = false;
+        (btn as HTMLButtonElement).textContent = '📧 Share';
+      });
+
+      if (shareResult.success && shareResult.shareToken) {
+        // Generate share link
+        const shareLink = await sharingService.generateShareLink(shareResult.shareToken);
+
+        // Show success message with copy option
+        const copyToClipboard = confirm(
+          `✅ Highlight shared with ${result.email}!\n\n` +
+          `Share link: ${shareLink}\n\n` +
+          `Click OK to copy the link to clipboard.`
+        );
+
+        if (copyToClipboard) {
+          const copied = await sharingService.copyShareLinkToClipboard(shareResult.shareToken);
+          if (copied) {
+            alert('📋 Link copied to clipboard!');
+          }
+        }
+      } else {
+        alert(`❌ Failed to share highlight: ${shareResult.error || 'Unknown error'}`);
+      }
+    },
+    () => {
+      // User cancelled
+      console.log('Share cancelled');
+    }
+  );
 }
 
 // Initialize authentication UI

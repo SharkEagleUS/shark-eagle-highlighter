@@ -175,6 +175,32 @@
       text-decoration: underline;
     }
 
+    .highlight-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .btn-share {
+      background: #2196f3;
+      color: white;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 11px;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn-share:hover {
+      background: #1976d2;
+    }
+
+    .btn-share:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
     .btn-delete {
       background: #ff5252;
       color: white;
