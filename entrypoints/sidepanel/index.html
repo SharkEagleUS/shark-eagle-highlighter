@@ -523,6 +523,40 @@
     .hidden {
       display: none !important;
     }
+
+    .info-note {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      border-radius: 6px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      margin-top: 16px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #856404;
+    }
+
+    .info-note-title {
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .info-note-content {
+      margin-bottom: 8px;
+    }
+
+    .info-note-benefits {
+      margin-left: 16px;
+      margin-top: 6px;
+    }
+
+    .info-note-benefits li {
+      margin-bottom: 3px;
+    }
   </style>
 </head>
 <body>
@@ -589,6 +623,25 @@
           <div class="auth-toggle">
             Already have an account? <a id="show-login">Sign in</a>
           </div>
+        </div>
+
+        <!-- Informational note about optional signup -->
+        <div class="info-note">
+          <div class="info-note-title">
+            ℹ️ Signup is Optional
+          </div>
+          <div class="info-note-content">
+            The extension works perfectly without an account! Your highlights are saved locally on your device.
+          </div>
+          <div class="info-note-content">
+            <strong>Create an account to unlock:</strong>
+          </div>
+          <ul class="info-note-benefits">
+            <li>☁️ Cloud backup - Never lose your highlights</li>
+            <li>🔄 Cross-device sync - Access from any Chrome browser</li>
+            <li>📱 Multi-device support - Sync across all your devices</li>
+            <li>🔒 Secure storage - Your data is protected</li>
+          </ul>
         </div>
       </div>
 
