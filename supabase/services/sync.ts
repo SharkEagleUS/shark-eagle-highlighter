@@ -151,6 +151,36 @@ export class SyncService {
   }
 
   /**
+   * Update a highlight in Supabase
+   */
+  async updateHighlight(url: string, highlight: LocalHighlight): Promise<{ success: boolean; error: string | null }> {
+    try {
+      const user = await authService.getUser();
+      if (!user) {
+        return { success: false, error: 'User not authenticated' };
+      }
+
+      const supabase = getSupabaseClient();
+      const supabaseHighlight = this.localToSupabase(url, highlight, user.id);
+
+      // Use upsert to update the highlight
+      const { error } = await supabase
+        .from('highlights')
+        .upsert(supabaseHighlight, { onConflict: 'id' });
+
+      if (error) {
+        console.error('Failed to update highlight:', error);
+        return { success: false, error: error.message };
+      }
+
+      return { success: true, error: null };
+    } catch (error) {
+      console.error('Failed to update highlight:', error);
+      return { success: false, error: String(error) };
+    }
+  }
+
+  /**
    * Pull highlights for a specific URL from Supabase
    */
   async pullHighlightsForUrl(url: string): Promise<{ highlights: LocalHighlight[]; error: string | null }> {

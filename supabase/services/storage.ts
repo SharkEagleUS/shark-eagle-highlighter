@@ -142,6 +142,55 @@ export class StorageService {
   }
 
   /**
+   * Update a highlight's comment and tags
+   * Updates in local storage and syncs to cloud if authenticated
+   */
+  async updateHighlight(url: string, highlightId: string, updates: { comment?: string; tags?: string[] }): Promise<boolean> {
+    try {
+      const normalizedUrl = this.normalizeUrl(url);
+      const key = this.getStorageKey(url);
+      
+      // Get existing highlights
+      const highlights = await this.getHighlightsForUrl(url);
+      
+      // Find and update the highlight
+      const highlightIndex = highlights.findIndex(h => h.id === highlightId);
+      if (highlightIndex === -1) {
+        console.error('Highlight not found:', highlightId);
+        return false;
+      }
+      
+      // Update the highlight
+      highlights[highlightIndex] = {
+        ...highlights[highlightIndex],
+        comment: updates.comment,
+        tags: updates.tags
+      };
+      
+      // Save to local storage
+      await chrome.storage.local.set({
+        [key]: { url: normalizedUrl, highlights }
+      });
+
+      // Sync to cloud if authenticated
+      const isAuth = await authService.isAuthenticated();
+      if (isAuth) {
+        try {
+          await syncService.updateHighlight(normalizedUrl, highlights[highlightIndex] as LocalHighlight);
+        } catch (error) {
+          console.error('Failed to sync highlight update to cloud:', error);
+          // Don't fail the update operation if cloud sync fails
+        }
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Failed to update highlight:', error);
+      return false;
+    }
+  }
+
+  /**
    * Remove a highlight
    * Removes from local storage and cloud if authenticated
    */

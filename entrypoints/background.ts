@@ -42,6 +42,10 @@ export default defineBackground(() => {
       // Save highlight data using unified storage service (auto-syncs to cloud)
       storageService.saveHighlight(message.url, message.highlight).then(sendResponse);
       return true;
+    } else if (message.action === 'updateHighlightData') {
+      // Update highlight data using unified storage service (auto-syncs to cloud)
+      storageService.updateHighlight(message.url, message.highlightId, message.updates).then(sendResponse);
+      return true;
     } else if (message.action === 'removeHighlightData') {
       // Remove highlight data using unified storage service (auto-syncs to cloud)
       storageService.removeHighlight(message.url, message.highlightId).then(sendResponse);

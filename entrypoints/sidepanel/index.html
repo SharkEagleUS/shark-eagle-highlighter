@@ -175,6 +175,22 @@
       text-decoration: underline;
     }
 
+    .btn-edit {
+      background: #2196f3;
+      color: white;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background 0.2s;
+      margin-right: 8px;
+    }
+
+    .btn-edit:hover {
+      background: #1976d2;
+    }
+
     .btn-delete {
       background: #ff5252;
       color: white;
@@ -188,6 +204,139 @@
 
     .btn-delete:hover {
       background: #d32f2f;
+    }
+
+    .edit-form {
+      margin-top: 12px;
+      padding: 12px;
+      background: #f9f9f9;
+      border-radius: 6px;
+      border: 1px solid #e0e0e0;
+    }
+
+    .edit-form-group {
+      margin-bottom: 12px;
+    }
+
+    .edit-form-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .edit-form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: #555;
+      margin-bottom: 4px;
+    }
+
+    .edit-form-textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 13px;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 60px;
+      box-sizing: border-box;
+    }
+
+    .edit-form-textarea:focus {
+      outline: none;
+      border-color: #2196f3;
+    }
+
+    .edit-form-input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 13px;
+      font-family: inherit;
+      box-sizing: border-box;
+    }
+
+    .edit-form-input:focus {
+      outline: none;
+      border-color: #2196f3;
+    }
+
+    .edit-form-hint {
+      font-size: 11px;
+      color: #999;
+      margin-top: 4px;
+    }
+
+    .edit-form-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+      min-height: 24px;
+    }
+
+    .edit-form-tag {
+      display: inline-flex;
+      align-items: center;
+      background: #e3f2fd;
+      color: #1976d2;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      gap: 4px;
+    }
+
+    .edit-form-tag-remove {
+      background: none;
+      border: none;
+      color: #1976d2;
+      cursor: pointer;
+      padding: 0;
+      font-size: 14px;
+      line-height: 1;
+      font-weight: bold;
+    }
+
+    .edit-form-tag-remove:hover {
+      color: #0d47a1;
+    }
+
+    .edit-form-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 12px;
+    }
+
+    .btn-save {
+      background: #4caf50;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background 0.2s;
+    }
+
+    .btn-save:hover {
+      background: #388e3c;
+    }
+
+    .btn-cancel {
+      background: #9e9e9e;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background 0.2s;
+    }
+
+    .btn-cancel:hover {
+      background: #757575;
     }
 
     .empty-state {

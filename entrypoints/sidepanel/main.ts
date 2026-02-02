@@ -122,17 +122,181 @@ function createHighlightElement(highlight: HighlightPosition, url?: string): HTM
   dateSpan.className = 'highlight-date';
   dateSpan.textContent = formatDate(highlight.createdAt);
 
+  const actionsDiv = document.createElement('div');
+  actionsDiv.style.display = 'flex';
+  actionsDiv.style.gap = '8px';
+
+  const editBtn = document.createElement('button');
+  editBtn.className = 'btn-edit';
+  editBtn.textContent = 'Edit';
+  editBtn.addEventListener('click', () => showEditForm(item, highlight, url));
+
   const deleteBtn = document.createElement('button');
   deleteBtn.className = 'btn-delete';
   deleteBtn.textContent = 'Delete';
   deleteBtn.addEventListener('click', () => deleteHighlight(highlight.id, url));
 
+  actionsDiv.appendChild(editBtn);
+  actionsDiv.appendChild(deleteBtn);
+
   metaDiv.appendChild(dateSpan);
-  metaDiv.appendChild(deleteBtn);
+  metaDiv.appendChild(actionsDiv);
 
   item.appendChild(metaDiv);
 
   return item;
+}
+
+// Show edit form for a highlight
+function showEditForm(item: HTMLElement, highlight: HighlightPosition, url?: string): void {
+  // Check if edit form already exists
+  const existingForm = item.querySelector('.edit-form');
+  if (existingForm) {
+    existingForm.remove();
+    return;
+  }
+
+  // Create edit form
+  const editForm = document.createElement('div');
+  editForm.className = 'edit-form';
+
+  // Comment field
+  const commentGroup = document.createElement('div');
+  commentGroup.className = 'edit-form-group';
+  
+  const commentLabel = document.createElement('label');
+  commentLabel.className = 'edit-form-label';
+  commentLabel.textContent = 'Comment';
+  
+  const commentTextarea = document.createElement('textarea');
+  commentTextarea.className = 'edit-form-textarea';
+  commentTextarea.value = highlight.comment || '';
+  commentTextarea.placeholder = 'Add your thoughts...';
+  
+  commentGroup.appendChild(commentLabel);
+  commentGroup.appendChild(commentTextarea);
+
+  // Tags field
+  const tagsGroup = document.createElement('div');
+  tagsGroup.className = 'edit-form-group';
+  
+  const tagsLabel = document.createElement('label');
+  tagsLabel.className = 'edit-form-label';
+  tagsLabel.textContent = 'Tags';
+  
+  const tagsInput = document.createElement('input');
+  tagsInput.className = 'edit-form-input';
+  tagsInput.type = 'text';
+  tagsInput.placeholder = 'Press Enter to add tags';
+  
+  const tagsHint = document.createElement('div');
+  tagsHint.className = 'edit-form-hint';
+  tagsHint.textContent = 'Press Enter after each tag';
+  
+  const tagsContainer = document.createElement('div');
+  tagsContainer.className = 'edit-form-tags';
+  
+  // State for tags
+  const editTags: string[] = [...(highlight.tags || [])];
+  
+  // Render tags
+  function renderTags(): void {
+    tagsContainer.innerHTML = '';
+    editTags.forEach((tag, index) => {
+      const tagSpan = document.createElement('span');
+      tagSpan.className = 'edit-form-tag';
+      tagSpan.textContent = tag;
+      
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'edit-form-tag-remove';
+      removeBtn.textContent = '×';
+      removeBtn.addEventListener('click', () => {
+        editTags.splice(index, 1);
+        renderTags();
+      });
+      
+      tagSpan.appendChild(removeBtn);
+      tagsContainer.appendChild(tagSpan);
+    });
+  }
+  
+  renderTags();
+  
+  // Add tag on Enter
+  tagsInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const tag = tagsInput.value.trim();
+      if (tag && !editTags.includes(tag)) {
+        editTags.push(tag);
+        renderTags();
+      }
+      tagsInput.value = '';
+    }
+  });
+  
+  tagsGroup.appendChild(tagsLabel);
+  tagsGroup.appendChild(tagsInput);
+  tagsGroup.appendChild(tagsHint);
+  tagsGroup.appendChild(tagsContainer);
+
+  // Actions
+  const actionsDiv = document.createElement('div');
+  actionsDiv.className = 'edit-form-actions';
+  
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'btn-cancel';
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.addEventListener('click', () => {
+    editForm.remove();
+  });
+  
+  const saveBtn = document.createElement('button');
+  saveBtn.className = 'btn-save';
+  saveBtn.textContent = 'Save';
+  saveBtn.addEventListener('click', async () => {
+    const comment = commentTextarea.value.trim();
+    await updateHighlight(highlight.id, { comment, tags: editTags }, url);
+    editForm.remove();
+  });
+  
+  actionsDiv.appendChild(cancelBtn);
+  actionsDiv.appendChild(saveBtn);
+
+  editForm.appendChild(commentGroup);
+  editForm.appendChild(tagsGroup);
+  editForm.appendChild(actionsDiv);
+
+  item.appendChild(editForm);
+  
+  // Focus on comment textarea
+  setTimeout(() => commentTextarea.focus(), 100);
+}
+
+// Update highlight
+async function updateHighlight(highlightId: string, updates: { comment?: string; tags?: string[] }, url?: string): Promise<void> {
+  // Get URL if not provided
+  if (!url) {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    url = tab?.url;
+  }
+  
+  if (!url) return;
+  
+  // Update in storage
+  await new Promise<void>((resolve) => {
+    chrome.runtime.sendMessage(
+      { action: 'updateHighlightData', url, highlightId, updates },
+      () => resolve()
+    );
+  });
+  
+  // Refresh current view
+  if (document.querySelector('.tab.active')?.getAttribute('data-tab') === 'current') {
+    loadCurrentPageHighlights();
+  } else {
+    loadAllHighlights();
+  }
 }
 
 // Load current page highlights
