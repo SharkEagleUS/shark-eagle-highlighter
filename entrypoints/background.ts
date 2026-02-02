@@ -7,7 +7,7 @@ export default defineBackground(() => {
   chrome.runtime.onInstalled.addListener(() => {
     chrome.contextMenus.create({
       id: 'save-highlight',
-      title: 'Save & Highlight Text',
+      title: 'Highlight Text',
       contexts: ['selection']
     });
 
