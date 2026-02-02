@@ -7,7 +7,9 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(npm run build:*)",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm test:coverage:*)"
     ]
   }
 }

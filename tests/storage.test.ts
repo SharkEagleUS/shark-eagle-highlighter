@@ -164,7 +164,8 @@ describe('storage utils', () => {
       const mockGet = vi.fn().mockResolvedValue({
         'highlights_https://example.com': {
           url: 'https://example.com',
-          highlights: existing,
+          // Return a copy to avoid mutation issues
+          highlights: [...existing],
         },
       });
       const mockSet = vi.fn().mockResolvedValue(undefined);
