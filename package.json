@@ -7,8 +7,9 @@
     "build": "wxt build",
     "zip": "wxt zip",
     "test": "vitest",
+    "test:run": "vitest run",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.93.3",
