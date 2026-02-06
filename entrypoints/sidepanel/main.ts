@@ -21,8 +21,6 @@ tabs.forEach(tab => {
     
     if (targetTab === 'current') {
       loadCurrentPageHighlights();
-    } else {
-      loadAllHighlights();
     }
   });
 });
@@ -276,12 +274,9 @@ async function updateHighlight(highlightId: string, updates: { comment?: string;
       () => resolve()
     );
   });
-  
-  // Refresh current view
+   
   if (document.querySelector('.tab.active')?.getAttribute('data-tab') === 'current') {
     loadCurrentPageHighlights();
-  } else {
-    loadAllHighlights();
   }
 }
 
@@ -326,66 +321,6 @@ async function loadCurrentPageHighlights(): Promise<void> {
   });
 }
 
-// Load all highlights across all pages
-async function loadAllHighlights(): Promise<void> {
-  const container = document.getElementById('all-list');
-  if (!container) return;
-  
-  const pages = await new Promise<PageHighlights[]>((resolve) => {
-    chrome.runtime.sendMessage(
-      { action: 'getAllHighlights' },
-      (response) => resolve(response || [])
-    );
-  });
-  
-  const allHighlights = pages.flatMap(p => 
-    p.highlights.map(h => ({ ...h, url: p.url }))
-  );
-  
-  if (allHighlights.length === 0) {
-    container.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-state-icon">📭</div>
-        <p>No highlights saved yet</p>
-      </div>
-    `;
-    return;
-  }
-  
-  // Sort by date, newest first
-  allHighlights.sort((a, b) => b.createdAt - a.createdAt);
-  
-  container.innerHTML = '';
-  
-  // Group by page
-  const groupedByPage = new Map<string, Array<HighlightPosition & { url: string }>>();
-  allHighlights.forEach(h => {
-    const existing = groupedByPage.get(h.url) || [];
-    existing.push(h);
-    groupedByPage.set(h.url, existing);
-  });
-  
-  groupedByPage.forEach((highlights, url) => {
-    const group = document.createElement('div');
-    group.className = 'page-group';
-    
-    const header = document.createElement('div');
-    header.className = 'page-group-header';
-    try {
-      header.textContent = new URL(url).hostname + new URL(url).pathname;
-    } catch {
-      header.textContent = url;
-    }
-    group.appendChild(header);
-    
-    highlights.forEach(h => {
-      group.appendChild(createHighlightElement(h, url));
-    });
-    
-    container.appendChild(group);
-  });
-}
-
 // Delete highlight
 async function deleteHighlight(highlightId: string, url?: string): Promise<void> {
   // Show confirmation dialog
@@ -420,11 +355,8 @@ async function deleteHighlight(highlightId: string, url?: string): Promise<void>
     chrome.tabs.sendMessage(tab.id, { action: 'refreshHighlights' });
   }
   
-  // Refresh current view
   if (document.querySelector('.tab.active')?.getAttribute('data-tab') === 'current') {
     loadCurrentPageHighlights();
-  } else {
-    loadAllHighlights();
   }
 }
 
@@ -435,20 +367,14 @@ new AuthUI();
 // Initial load
 loadCurrentPageHighlights();
 
-// Listen for storage changes
 chrome.storage.onChanged.addListener(() => {
   if (document.querySelector('.tab.active')?.getAttribute('data-tab') === 'current') {
     loadCurrentPageHighlights();
-  } else {
-    loadAllHighlights();
   }
 });
 
-// Listen for highlights-updated event (triggered after sync/import)
 window.addEventListener('highlights-updated', () => {
   if (document.querySelector('.tab.active')?.getAttribute('data-tab') === 'current') {
     loadCurrentPageHighlights();
-  } else if (document.querySelector('.tab.active')?.getAttribute('data-tab') === 'all') {
-    loadAllHighlights();
   }
 });
