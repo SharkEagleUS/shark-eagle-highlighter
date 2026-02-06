@@ -25,9 +25,21 @@ export default defineConfig({
         48: 'icon/48.png',
         128: 'icon/128.png',
       },
+    },
+    options_ui: {
+      page: 'options.html',
+      open_in_tab: true
+    } as any
+  },
+  hooks: {
+    'build:manifestGenerated': (wxt, manifest) => {
+      if (manifest.options_ui) {
+        (manifest.options_ui as any).open_in_tab = true;
+      }
     }
   },
   webExt: {
+    disabled: true,
     startUrls: ['https://hzhou.me/2020/12/24/SaltyNote-Server-Setup/']
   }
 });

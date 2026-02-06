@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Highlights Dashboard</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 20px;
+      background: #f5f5f5;
+      color: #333;
+      min-height: 100vh;
+    }
+
+    .dashboard {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #1a1a1a;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h1::before {
+      content: '📊';
+    }
+
+    .stats-bar {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 16px 24px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      flex: 1;
+      min-width: 150px;
+    }
+
+    .stat-card h3 {
+      font-size: 12px;
+      color: #666;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .stat-card .value {
+      font-size: 28px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .controls {
+      background: white;
+      padding: 16px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .control-group label {
+      font-size: 12px;
+      color: #666;
+      font-weight: 500;
+    }
+
+    .control-group select,
+    .control-group input {
+      padding: 8px 12px;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      font-size: 14px;
+      min-width: 180px;
+    }
+
+    .control-group select:focus,
+    .control-group input:focus {
+      outline: none;
+      border-color: #2196f3;
+    }
+
+    .search-input {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: #2196f3;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #1976d2;
+    }
+
+    .btn-secondary {
+      background: #f5f5f5;
+      color: #333;
+      border: 1px solid #e0e0e0;
+    }
+
+    .btn-secondary:hover {
+      background: #e0e0e0;
+    }
+
+    .table-container {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th {
+      background: #fafafa;
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 600;
+      color: #666;
+      text-transform: uppercase;
+      border-bottom: 1px solid #e0e0e0;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    th:hover {
+      background: #f0f0f0;
+    }
+
+    th.sorted-asc::after {
+      content: ' ▲';
+    }
+
+    th.sorted-desc::after {
+      content: ' ▼';
+    }
+
+    td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 14px;
+      vertical-align: top;
+    }
+
+    tr:hover {
+      background: #fafafa;
+    }
+
+    .highlight-text-cell {
+      max-width: 400px;
+      word-break: break-word;
+    }
+
+    .highlight-text-preview {
+      display: block;
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .color-yellow { background: #ffeb3b; }
+    .color-red { background: #ff8a80; }
+    .color-green { background: #b9f6ca; }
+    .color-lightBlue { background: #80d8ff; }
+    .color-lightPurple { background: #ea80fc; }
+
+    .url-cell {
+      max-width: 250px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .url-cell a {
+      color: #2196f3;
+      text-decoration: none;
+    }
+
+    .url-cell a:hover {
+      text-decoration: underline;
+    }
+
+    .tags-cell {
+      max-width: 200px;
+    }
+
+    .tags-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .tag {
+      display: inline-block;
+      background: #e3f2fd;
+      color: #1976d2;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .comment-cell {
+      max-width: 250px;
+      font-size: 13px;
+      color: #555;
+      font-style: italic;
+    }
+
+    .date-cell {
+      white-space: nowrap;
+      font-size: 13px;
+      color: #666;
+    }
+
+    .actions-cell {
+      white-space: nowrap;
+    }
+
+    .action-btn {
+      padding: 4px 8px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      margin-right: 4px;
+      transition: all 0.2s;
+    }
+
+    .btn-edit {
+      background: #2196f3;
+      color: white;
+    }
+
+    .btn-edit:hover {
+      background: #1976d2;
+    }
+
+    .btn-delete {
+      background: #ff5252;
+      color: white;
+    }
+
+    .btn-delete:hover {
+      background: #d32f2f;
+    }
+
+    .btn-navigate {
+      background: #4caf50;
+      color: white;
+    }
+
+    .btn-navigate:hover {
+      background: #388e3c;
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      border-top: 1px solid #e0e0e0;
+    }
+
+    .pagination-info {
+      font-size: 14px;
+      color: #666;
+    }
+
+    .pagination-controls {
+      display: flex;
+      gap: 8px;
+    }
+
+    .page-btn {
+      padding: 6px 12px;
+      border: 1px solid #e0e0e0;
+      background: white;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .page-btn:hover:not(:disabled) {
+      background: #f5f5f5;
+      border-color: #2196f3;
+    }
+
+    .page-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .page-btn.active {
+      background: #2196f3;
+      color: white;
+      border-color: #2196f3;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #999;
+    }
+
+    .empty-state-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+
+    .edit-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .edit-modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 24px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-content h2 {
+      margin-bottom: 16px;
+      font-size: 18px;
+    }
+
+    .modal-form-group {
+      margin-bottom: 16px;
+    }
+
+    .modal-form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #555;
+      margin-bottom: 4px;
+    }
+
+    .modal-form-group textarea,
+    .modal-form-group input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    .modal-form-group textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    .modal-tags-input {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      min-height: 40px;
+    }
+
+    .modal-tags-input input {
+      border: none;
+      outline: none;
+      flex: 1;
+      min-width: 100px;
+      padding: 4px;
+    }
+
+    .modal-tag {
+      display: inline-flex;
+      align-items: center;
+      background: #e3f2fd;
+      color: #1976d2;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      gap: 4px;
+    }
+
+    .modal-tag-remove {
+      background: none;
+      border: none;
+      color: #1976d2;
+      cursor: pointer;
+      padding: 0;
+      font-size: 14px;
+      line-height: 1;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 16px;
+    }
+
+    .items-per-page {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .items-per-page select {
+      padding: 6px 10px;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <h1>Highlights Dashboard</h1>
+
+    <div class="stats-bar">
+      <div class="stat-card">
+        <h3>Total Highlights</h3>
+        <div class="value" id="total-count">0</div>
+      </div>
+      <div class="stat-card">
+        <h3>Pages with Highlights</h3>
+        <div class="value" id="pages-count">0</div>
+      </div>
+      <div class="stat-card">
+        <h3>Unique Tags</h3>
+        <div class="value" id="tags-count">0</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="control-group">
+        <label>Filter by Tag</label>
+        <select id="tag-filter">
+          <option value="">All Tags</option>
+        </select>
+      </div>
+
+      <div class="control-group search-input">
+        <label>Search Text</label>
+        <input type="text" id="search-input" placeholder="Search in highlighted text...">
+      </div>
+
+      <button class="btn btn-secondary" id="refresh-btn">Refresh</button>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th data-sort="text">Highlighted Text</th>
+            <th data-sort="url">Page URL</th>
+            <th data-sort="color">Color</th>
+            <th data-sort="tags">Tags</th>
+            <th data-sort="comment">Comment</th>
+            <th data-sort="createdAt">Created</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="highlights-table">
+          <tr>
+            <td colspan="7" class="loading">Loading highlights...</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="pagination" id="pagination" style="display: none;">
+        <div class="pagination-info" id="pagination-info"></div>
+        <div class="pagination-controls" id="pagination-controls"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div class="edit-modal" id="edit-modal">
+    <div class="modal-content">
+      <h2>Edit Highlight</h2>
+
+      <div class="modal-form-group">
+        <label>Comment</label>
+        <textarea id="edit-comment" placeholder="Add your thoughts..."></textarea>
+      </div>
+
+      <div class="modal-form-group">
+        <label>Tags (press Enter to add)</label>
+        <div class="modal-tags-input" id="edit-tags-container">
+          <input type="text" id="edit-tags-input" placeholder="Type a tag...">
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="modal-cancel">Cancel</button>
+        <button class="btn btn-primary" id="modal-save">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./main.ts"></script>
+</body>
+</html>
