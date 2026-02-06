@@ -22,13 +22,67 @@ export class StorageService {
     return StorageService.instance;
   }
 
+  // Common tracking/marketing parameters to remove
+  private static readonly TRACKING_PARAMS = new Set([
+    // Google Analytics
+    'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'utm_id',
+    '_ga', '_gid', '_gac', 'gclid', 'gclsrc',
+    // Facebook
+    'fbclid', 'fb_action_ids', 'fb_action_types', 'fb_source', 'fb_ref',
+    // Microsoft/Bing
+    'msclkid', 'mc_cid', 'mc_eid',
+    // Mailchimp
+    'mc_cid', 'mc_eid',
+    // Twitter
+    'twclid', 'tw_source', 'tw_medium', 'tw_campaign',
+    // LinkedIn
+    'li_fat_id', 'lipi',
+    // Pinterest
+    'epik',
+    // TikTok
+    'ttclid',
+    // Reddit
+    'rdt_cid',
+    // HubSpot
+    'hsa_acc', 'hsa_cam', 'hsa_grp', 'hsa_ad', 'hsa_src', 'hsa_tgt', 'hsa_kw', 'hsa_mt', 'hsa_net', 'hsa_ver',
+    // General tracking
+    'ref', 'referrer', 'source', 'campaign', 'medium', 'content', 'term',
+    // Session/tracking IDs
+    'sessionid', 'session_id', '_hsenc', '_hsmi',
+    // Adobe/Marketo
+    'mkt_tok',
+    // Other common ones
+    'igshid', 'yclid', 'gbraid', 'wbraid',
+  ]);
+
   /**
    * Normalize URL for consistent storage keys
    */
   private normalizeUrl(url: string): string {
     try {
       const parsed = new URL(url);
-      return `${parsed.origin}${parsed.pathname.replace(/\/$/, '')}${parsed.search}`;
+      
+      // Get search params and filter out tracking parameters
+      const searchParams = new URLSearchParams(parsed.search);
+      const cleanedParams = new URLSearchParams();
+      
+      // Keep only non-tracking parameters and sort them alphabetically
+      const sortedKeys = Array.from(searchParams.keys())
+        .filter(key => !StorageService.TRACKING_PARAMS.has(key.toLowerCase()))
+        .sort();
+      
+      sortedKeys.forEach(key => {
+        const value = searchParams.get(key);
+        if (value !== null) {
+          cleanedParams.append(key, value);
+        }
+      });
+      
+      // Reconstruct URL without hash, trailing slash, and with cleaned params
+      const queryString = cleanedParams.toString();
+      const pathname = parsed.pathname.replace(/\/$/, '');
+      
+      return `${parsed.origin}${pathname}${queryString ? '?' + queryString : ''}`;
     } catch {
       return url;
     }

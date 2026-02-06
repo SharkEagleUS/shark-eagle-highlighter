@@ -35,9 +35,6 @@ describe('storage utils', () => {
       expect(normalizeUrl('https://example.com/path/')).toBe(
         'https://example.com/path'
       );
-      expect(normalizeUrl('https://example.com/path?query=1')).toBe(
-        'https://example.com/path?query=1'
-      );
     });
 
     it('should handle invalid URLs gracefully', () => {
@@ -45,9 +42,75 @@ describe('storage utils', () => {
       expect(normalizeUrl(invalid)).toBe(invalid);
     });
 
-    it('should preserve search params', () => {
-      const url = 'https://example.com/path?foo=bar&baz=qux';
-      expect(normalizeUrl(url)).toBe(url);
+    it('should preserve legitimate query parameters', () => {
+      expect(normalizeUrl('https://example.com/path?id=123&page=2')).toBe(
+        'https://example.com/path?id=123&page=2'
+      );
+    });
+
+    it('should remove tracking parameters', () => {
+      expect(normalizeUrl('https://example.com/path?utm_source=twitter&utm_medium=social')).toBe(
+        'https://example.com/path'
+      );
+      expect(normalizeUrl('https://example.com/path?fbclid=abc123')).toBe(
+        'https://example.com/path'
+      );
+      expect(normalizeUrl('https://example.com/path?gclid=xyz789')).toBe(
+        'https://example.com/path'
+      );
+      expect(normalizeUrl('https://example.com/path?ref=newsletter')).toBe(
+        'https://example.com/path'
+      );
+    });
+
+    it('should keep legitimate params while removing tracking params', () => {
+      expect(
+        normalizeUrl('https://example.com/path?id=123&utm_source=twitter&page=2&fbclid=abc')
+      ).toBe('https://example.com/path?id=123&page=2');
+    });
+
+    it('should sort query parameters alphabetically', () => {
+      expect(normalizeUrl('https://example.com/path?zebra=1&apple=2')).toBe(
+        'https://example.com/path?apple=2&zebra=1'
+      );
+      expect(normalizeUrl('https://example.com/path?c=3&a=1&b=2')).toBe(
+        'https://example.com/path?a=1&b=2&c=3'
+      );
+    });
+
+    it('should normalize URLs with same params in different order to same key', () => {
+      const url1 = normalizeUrl('https://example.com/path?foo=bar&baz=qux');
+      const url2 = normalizeUrl('https://example.com/path?baz=qux&foo=bar');
+      expect(url1).toBe(url2);
+      expect(url1).toBe('https://example.com/path?baz=qux&foo=bar');
+    });
+
+    it('should handle mixed tracking and legitimate params with hash', () => {
+      expect(
+        normalizeUrl('https://example.com/path?id=123&utm_campaign=test#section')
+      ).toBe('https://example.com/path?id=123');
+    });
+
+    it('should handle case-insensitive tracking param matching', () => {
+      expect(normalizeUrl('https://example.com/path?UTM_SOURCE=test')).toBe(
+        'https://example.com/path'
+      );
+      expect(normalizeUrl('https://example.com/path?FbClid=abc')).toBe(
+        'https://example.com/path'
+      );
+    });
+
+    it('should remove multiple types of tracking params', () => {
+      const url = 'https://example.com/article?' +
+        'id=42&' +
+        'utm_source=google&' +
+        'utm_medium=cpc&' +
+        'utm_campaign=spring&' +
+        'fbclid=xyz&' +
+        'gclid=abc&' +
+        'msclkid=def&' +
+        'ref=homepage';
+      expect(normalizeUrl(url)).toBe('https://example.com/article?id=42');
     });
   });
 
