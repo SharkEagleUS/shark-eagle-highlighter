@@ -5,7 +5,7 @@ export default defineConfig({
   manifest: {
     name: 'Shark Eagle Highlighter',
     description: 'Save and highlight text selections across page visits',
-    version: '1.1.1',
+    version: '1.1.2',
     permissions: ['storage', 'contextMenus', 'sidePanel'],
     icons: {
       16: 'icon/16.png',
