@@ -322,7 +322,7 @@ export class StorageService {
 
         const merged = Array.from(mergedMap.values());
         await chrome.storage.local.set({
-          [key]: { url, highlights: merged }
+          [key]: { url: this.normalizeUrl(url), highlights: merged }
         });
       }
 
@@ -374,7 +374,7 @@ export class StorageService {
       for (const [url, cloudHighlights] of cloudHighlightsByUrl.entries()) {
         const key = this.getStorageKey(url);
         await chrome.storage.local.set({
-          [key]: { url, highlights: cloudHighlights as HighlightPosition[] }
+          [key]: { url: this.normalizeUrl(url), highlights: cloudHighlights as HighlightPosition[] }
         });
       }
 
